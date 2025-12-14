@@ -2,7 +2,8 @@ import streamlit as st
 from rag_utils import generate_answer
 from agent_tools import analyze
 
-st.title("Talk to your Doc")
+st.title("Talk to your Doc💡")
+st.write("An intelligent document analysis system that uses RAG and AI Agents to analyze **Statement of Work** documents. Built with Azure AI Search, Azure OpenAI, and LangGraph.")
 
 mode = st.radio("Select Mode: ", ["Simple RAG", "Contract Agent"])
 

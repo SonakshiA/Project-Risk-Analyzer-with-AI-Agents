@@ -7,7 +7,7 @@ from langchain_openai import AzureChatOpenAI
 from langchain_core.messages import HumanMessage
 from typing import TypedDict, Annotated, List
 from langgraph.graph.message import add_messages
-from rag_utils import search_documents
+from rag_utils import search_documents, get_openai_client
 import os
 
 # tools definitions
@@ -26,17 +26,45 @@ def risk_check_tool(content: str) -> str:
     Only identify risks present in the content.
     Do not make up risks. 
     Return 'Document not found' if no relevant document is found."""
-    risks = []
-    content_lower = content.lower()
     
-    if "no warranty" in content_lower:
-        risks.append("No warranty")
-    if "100%" in content_lower and ("completion" in content_lower or "after" in content_lower):
-        risks.append("Full payment after completion")
-    if "intellectual property" not in content_lower:
-        risks.append("Missing IP clause")
+    risk_analysis_prompt = f"""
+    You are a contract risk analyst. Analyze this Statement of Work content for risks:
+
+    {content}
+
+    Identify ALL risks in these categories:
+    1. **Financial Risks**: Payment terms, pricing, budget issues
+    2. **Legal Risks**: Missing clauses (warranty, IP, liability, termination)
+    3. **Timeline Risks**: Unrealistic schedules, unclear milestones
+    4. **Scope Risks**: Vague deliverables, scope creep indicators
+    5. **Operational Risks**: Resource availability, dependencies
+    6. **Compliance Risks**: Regulatory requirements, data protection
+
+    For each risk found:
+    - State the risk clearly
+    - Explain the impact
+    - Provide a recommendation
+
+    Format as:
+    **Risk Category**
+    ⚠️ Risk: [description]
+    Impact: [what could go wrong]
+    Recommendation: [how to mitigate]
+
+    If no significant risks, state "No major risks detected"
+    """
+
+    client = get_openai_client()
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": "You are an expert contract risk analyst. Be thorough but precise."},
+            {"role": "user", "content": risk_analysis_prompt}
+        ],
+        temperature=0.3  # Lower temperature for more consistent analysis
+    )
     
-    return "\n".join(risks) if risks else "No major risks"
+    return response.choices[0].message.content
 
 
 class AgentState(TypedDict):
