@@ -5,7 +5,7 @@ from agent_tools import analyze
 st.title("Talk to your Doc💡")
 st.write("An intelligent document analysis system that uses RAG and AI Agents to analyze **Statement of Work** documents. Built with Azure AI Search, Azure OpenAI, and LangGraph.")
 
-mode = st.radio("Select Mode: ", ["Simple RAG", "Contract Agent"])
+mode = st.radio("Select Mode: ", ["Simple RAG", "Contract Agent (For Project Risk Assessment)"])
 
 question = st.text_input("Ask a question about the document:")
 if question:
